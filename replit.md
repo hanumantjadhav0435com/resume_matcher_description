@@ -102,8 +102,28 @@ Resume Matcher is a Flask-based web application that analyzes the compatibility 
 - SQLite database with automatic table creation
 - Local file storage in uploads directory
 
+## Local Setup Files
+
+### Available Setup Resources
+- **local_requirements.txt**: Python dependencies for local installation
+- **LOCAL_SETUP.md**: Comprehensive setup guide with step-by-step instructions
+- **setup.py**: Automated setup script for easier local installation
+
+### Local Installation Summary
+1. Install dependencies: `pip install -r local_requirements.txt`
+2. Install spaCy model: `python -m spacy download en_core_web_sm`
+3. Create .env file with DATABASE_URL, SESSION_SECRET, and GEMINI_API_KEY
+4. Run setup script: `python setup.py` or manual database initialization
+5. Start application: `python main.py`
+
+## Recent Updates
+- July 05, 2025: Added delete functionality for analysis results with confirmation modals
+- July 05, 2025: Created local setup files (local_requirements.txt, LOCAL_SETUP.md, setup.py)
+- July 05, 2025: Enhanced match calculation with multiple scoring methods
+- July 05, 2025: Changed job description input from file upload to text area
+
 ## Changelog
-- July 05, 2025. Initial setup
+- July 05, 2025. Initial setup with complete functionality
 
 ## User Preferences
 
