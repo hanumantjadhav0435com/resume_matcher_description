@@ -17,7 +17,11 @@ def get_embeddings(text):
             contents=text
         )
         
-        if response.embedding and response.embedding.values:
+        if hasattr(response, 'embeddings') and response.embeddings:
+            # Handle batch response
+            return np.array(response.embeddings[0].values)
+        elif hasattr(response, 'embedding') and response.embedding:
+            # Handle single response
             return np.array(response.embedding.values)
         else:
             logging.error("No embeddings returned from Gemini API")

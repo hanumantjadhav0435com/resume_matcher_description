@@ -197,3 +197,22 @@ def view_history():
     results = MatchResult.query.filter_by(user_id=current_user.id)\
                               .order_by(MatchResult.created_at.desc()).all()
     return render_template('dashboard.html', recent_results=results, show_all=True)
+
+@app.route('/delete_result/<int:result_id>', methods=['POST'])
+@login_required
+def delete_result(result_id):
+    result = MatchResult.query.filter_by(id=result_id, user_id=current_user.id).first()
+    
+    if not result:
+        flash('Result not found or you do not have permission to delete it.', 'danger')
+        return redirect(url_for('dashboard'))
+    
+    try:
+        db.session.delete(result)
+        db.session.commit()
+        flash('Analysis result deleted successfully.', 'success')
+    except Exception as e:
+        logging.error(f"Error deleting result: {e}")
+        flash('Error deleting result. Please try again.', 'danger')
+    
+    return redirect(url_for('dashboard'))
