@@ -16,8 +16,6 @@ ALLOWED_EXTENSIONS = {'pdf', 'txt'}
 def allowed_file(filename, file_type):
     if file_type == 'resume':
         return '.' in filename and filename.rsplit('.', 1)[1].lower() == 'pdf'
-    elif file_type == 'job':
-        return '.' in filename and filename.rsplit('.', 1)[1].lower() == 'txt'
     return False
 
 @app.route('/')
@@ -102,42 +100,36 @@ def dashboard():
 @login_required
 def upload_files():
     if request.method == 'POST':
-        # Check if files are present
-        if 'resume' not in request.files or 'job_description' not in request.files:
-            flash('Both resume and job description files are required.', 'danger')
+        # Check if resume file and job description text are present
+        if 'resume' not in request.files or not request.form.get('job_description'):
+            flash('Both resume file and job description text are required.', 'danger')
             return render_template('upload.html')
         
         resume_file = request.files['resume']
-        job_file = request.files['job_description']
+        job_description_text = request.form.get('job_description', '').strip()
         
-        # Check if files are selected
-        if resume_file.filename == '' or job_file.filename == '':
-            flash('Please select both files.', 'danger')
+        # Check if resume file is selected and job description is provided
+        if resume_file.filename == '' or not job_description_text:
+            flash('Please select a resume file and provide job description text.', 'danger')
             return render_template('upload.html')
         
-        # Validate file types
-        if not (allowed_file(resume_file.filename, 'resume') and 
-                allowed_file(job_file.filename, 'job')):
-            flash('Resume must be PDF format and job description must be TXT format.', 'danger')
+        # Validate resume file type
+        if not allowed_file(resume_file.filename, 'resume'):
+            flash('Resume must be in PDF format.', 'danger')
             return render_template('upload.html')
         
         try:
-            # Save files
+            # Save resume file
             resume_filename = secure_filename(f"{current_user.id}_{resume_file.filename}")
-            job_filename = secure_filename(f"{current_user.id}_{job_file.filename}")
-            
             resume_path = os.path.join(app.config['UPLOAD_FOLDER'], resume_filename)
-            job_path = os.path.join(app.config['UPLOAD_FOLDER'], job_filename)
-            
             resume_file.save(resume_path)
-            job_file.save(job_path)
             
             # Process files
             resume_text = extract_text_from_pdf(resume_path)
-            job_text = extract_text_from_txt(job_path)
+            job_text = job_description_text
             
             if not resume_text or not job_text:
-                flash('Error extracting text from files. Please check file formats.', 'danger')
+                flash('Error extracting text from resume. Please check file format.', 'danger')
                 return render_template('upload.html')
             
             # Extract keywords
@@ -156,7 +148,7 @@ def upload_files():
             result = MatchResult(
                 user_id=current_user.id,
                 resume_filename=resume_file.filename,
-                job_description_filename=job_file.filename,
+                job_description_filename="Direct Input",
                 match_score=match_score,
                 resume_keywords=json.dumps(resume_keywords),
                 job_keywords=json.dumps(job_keywords),
@@ -166,9 +158,8 @@ def upload_files():
             db.session.add(result)
             db.session.commit()
             
-            # Clean up uploaded files
+            # Clean up uploaded resume file
             os.remove(resume_path)
-            os.remove(job_path)
             
             # Redirect to results
             return redirect(url_for('view_results', result_id=result.id))

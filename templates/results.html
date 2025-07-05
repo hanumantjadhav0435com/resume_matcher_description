@@ -106,11 +106,17 @@
         <div class="card">
             <div class="card-header">
                 <h6 class="mb-0">
-                    <i class="fas fa-file-alt text-info me-2"></i>Job Description
+                    <i class="fas fa-clipboard-list text-info me-2"></i>Job Description
                 </h6>
             </div>
             <div class="card-body">
-                <p class="mb-1"><strong>File:</strong> {{ result.job_description_filename }}</p>
+                <p class="mb-1"><strong>Source:</strong> 
+                    {% if result.job_description_filename == "Direct Input" %}
+                        Text Input (Pasted/Typed)
+                    {% else %}
+                        {{ result.job_description_filename }}
+                    {% endif %}
+                </p>
                 <p class="mb-1"><small class="text-muted">Analyzed: {{ result.created_at.strftime('%Y-%m-%d %H:%M') }}</small></p>
             </div>
         </div>

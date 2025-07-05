@@ -17,9 +17,9 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     
-    if (jobDescInput) {
-        jobDescInput.addEventListener('change', function(e) {
-            validateFileType(e.target, 'txt', 'Job description must be a TXT file');
+    if (jobDescInput && jobDescInput.tagName === 'TEXTAREA') {
+        jobDescInput.addEventListener('input', function(e) {
+            validateJobDescriptionText(e.target);
         });
     }
 
@@ -64,6 +64,37 @@ function validateFileType(input, expectedType, errorMessage) {
         
         input.parentNode.appendChild(fileInfo);
     }
+    return true;
+}
+
+function validateJobDescriptionText(textarea) {
+    const text = textarea.value.trim();
+    const minLength = 50; // Minimum characters for a meaningful job description
+    
+    // Remove existing validation messages
+    const existingInfo = textarea.parentNode.querySelector('.form-text.text-success, .form-text.text-warning');
+    if (existingInfo) {
+        existingInfo.remove();
+    }
+    
+    if (text.length === 0) {
+        return false;
+    }
+    
+    if (text.length < minLength) {
+        const warningInfo = document.createElement('small');
+        warningInfo.className = 'form-text text-warning';
+        warningInfo.innerHTML = `<i class="fas fa-exclamation-triangle me-1"></i>Job description seems too short. Please provide more details for better analysis.`;
+        textarea.parentNode.appendChild(warningInfo);
+        return false;
+    }
+    
+    // Show success message
+    const successInfo = document.createElement('small');
+    successInfo.className = 'form-text text-success';
+    successInfo.innerHTML = `<i class="fas fa-check-circle me-1"></i>Job description looks good! (${text.length} characters)`;
+    textarea.parentNode.appendChild(successInfo);
+    
     return true;
 }
 
@@ -170,11 +201,17 @@ function enhanceUploadForm() {
     
     uploadForm.addEventListener('submit', function(e) {
         const resumeFile = document.getElementById('resume').files[0];
-        const jobFile = document.getElementById('job_description').files[0];
+        const jobDescText = document.getElementById('job_description').value.trim();
         
-        if (!resumeFile || !jobFile) {
+        if (!resumeFile || !jobDescText) {
             e.preventDefault();
-            showAlert('Please select both files before submitting', 'warning');
+            showAlert('Please select a resume file and provide job description text', 'warning');
+            return false;
+        }
+        
+        if (jobDescText.length < 50) {
+            e.preventDefault();
+            showAlert('Job description is too short. Please provide more details for accurate analysis.', 'warning');
             return false;
         }
         
