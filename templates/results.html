@@ -1,0 +1,244 @@
+{% extends "base.html" %}
+
+{% block title %}Analysis Results - Resume Matcher{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1><i class="fas fa-chart-line me-2"></i>Analysis Results</h1>
+            <div>
+                <a href="{{ url_for('upload_files') }}" class="btn btn-outline-primary me-2">
+                    <i class="fas fa-plus me-1"></i>New Analysis
+                </a>
+                <a href="{{ url_for('dashboard') }}" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left me-1"></i>Back to Dashboard
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Match Score Overview -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-bullseye me-2"></i>Match Score Overview
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row align-items-center">
+                    <div class="col-md-6">
+                        <h3 class="mb-3">
+                            Match Score: 
+                            <span class="{% if result.match_score >= 80 %}text-success
+                                        {% elif result.match_score >= 60 %}text-warning
+                                        {% else %}text-danger{% endif %}">
+                                {{ "%.1f"|format(result.match_score) }}%
+                            </span>
+                        </h3>
+                        <div class="progress mb-3" style="height: 30px;">
+                            <div class="progress-bar 
+                                {% if result.match_score >= 80 %}bg-success
+                                {% elif result.match_score >= 60 %}bg-warning
+                                {% else %}bg-danger{% endif %}" 
+                                style="width: {{ result.match_score }}%">
+                                {{ "%.1f"|format(result.match_score) }}%
+                            </div>
+                        </div>
+                        <p class="text-muted">
+                            {% if result.match_score >= 80 %}
+                                <i class="fas fa-check-circle text-success me-1"></i>
+                                Excellent match! Your resume aligns well with the job requirements.
+                            {% elif result.match_score >= 60 %}
+                                <i class="fas fa-exclamation-triangle text-warning me-1"></i>
+                                Good match with room for improvement.
+                            {% else %}
+                                <i class="fas fa-times-circle text-danger me-1"></i>
+                                Low match score. Consider significant improvements.
+                            {% endif %}
+                        </p>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="row text-center">
+                            <div class="col-6">
+                                <div class="card bg-light">
+                                    <div class="card-body">
+                                        <h5 class="card-title">{{ resume_keywords|length }}</h5>
+                                        <p class="card-text small">Resume Keywords</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="card bg-light">
+                                    <div class="card-body">
+                                        <h5 class="card-title">{{ job_keywords|length }}</h5>
+                                        <p class="card-text small">Job Keywords</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- File Information -->
+<div class="row mb-4">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h6 class="mb-0">
+                    <i class="fas fa-file-pdf text-danger me-2"></i>Resume
+                </h6>
+            </div>
+            <div class="card-body">
+                <p class="mb-1"><strong>File:</strong> {{ result.resume_filename }}</p>
+                <p class="mb-1"><small class="text-muted">Analyzed: {{ result.created_at.strftime('%Y-%m-%d %H:%M') }}</small></p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h6 class="mb-0">
+                    <i class="fas fa-file-alt text-info me-2"></i>Job Description
+                </h6>
+            </div>
+            <div class="card-body">
+                <p class="mb-1"><strong>File:</strong> {{ result.job_description_filename }}</p>
+                <p class="mb-1"><small class="text-muted">Analyzed: {{ result.created_at.strftime('%Y-%m-%d %H:%M') }}</small></p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Keywords Comparison -->
+<div class="row mb-4">
+    <div class="col-md-6">
+        <div class="card h-100">
+            <div class="card-header">
+                <h6 class="mb-0">
+                    <i class="fas fa-tags me-2"></i>Resume Keywords
+                </h6>
+            </div>
+            <div class="card-body">
+                {% if resume_keywords %}
+                    <div class="keyword-cloud">
+                        {% for keyword in resume_keywords %}
+                            <span class="badge 
+                                {% if keyword in job_keywords %}bg-success
+                                {% else %}bg-secondary{% endif %} 
+                                me-1 mb-1">
+                                {{ keyword }}
+                                {% if keyword in job_keywords %}
+                                    <i class="fas fa-check ms-1"></i>
+                                {% endif %}
+                            </span>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <p class="text-muted">No keywords extracted.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card h-100">
+            <div class="card-header">
+                <h6 class="mb-0">
+                    <i class="fas fa-bullseye me-2"></i>Job Requirements Keywords
+                </h6>
+            </div>
+            <div class="card-body">
+                {% if job_keywords %}
+                    <div class="keyword-cloud">
+                        {% for keyword in job_keywords %}
+                            <span class="badge 
+                                {% if keyword in resume_keywords %}bg-success
+                                {% else %}bg-warning{% endif %} 
+                                me-1 mb-1">
+                                {{ keyword }}
+                                {% if keyword not in resume_keywords %}
+                                    <i class="fas fa-exclamation ms-1"></i>
+                                {% endif %}
+                            </span>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <p class="text-muted">No keywords extracted.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Keyword Legend -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body">
+                <h6 class="card-title">
+                    <i class="fas fa-info-circle me-2"></i>Keyword Legend
+                </h6>
+                <div class="row">
+                    <div class="col-md-4">
+                        <span class="badge bg-success me-2">Matched</span>
+                        <small>Keywords found in both documents</small>
+                    </div>
+                    <div class="col-md-4">
+                        <span class="badge bg-warning me-2">Missing</span>
+                        <small>Job requirements not in resume</small>
+                    </div>
+                    <div class="col-md-4">
+                        <span class="badge bg-secondary me-2">Extra</span>
+                        <small>Resume keywords not in job description</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Improvement Suggestions -->
+{% if suggestions %}
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-lightbulb me-2"></i>Improvement Suggestions
+                </h5>
+            </div>
+            <div class="card-body">
+                {% for suggestion in suggestions %}
+                    <div class="alert alert-info d-flex align-items-start">
+                        <div class="me-3">
+                            {% if suggestion.type == 'missing_keywords' %}
+                                <i class="fas fa-plus-circle fa-lg"></i>
+                            {% elif suggestion.type == 'keyword_density' %}
+                                <i class="fas fa-chart-bar fa-lg"></i>
+                            {% elif suggestion.type == 'major_revision' %}
+                                <i class="fas fa-edit fa-lg"></i>
+                            {% elif suggestion.type == 'moderate_revision' %}
+                                <i class="fas fa-wrench fa-lg"></i>
+                            {% else %}
+                                <i class="fas fa-robot fa-lg"></i>
+                            {% endif %}
+                        </div>
+                        <div>
+                            <h6 class="alert-heading mb-2">{{ suggestion.title }}</h6>
+                            <p class="mb-0">{{ suggestion.description }}</p>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
