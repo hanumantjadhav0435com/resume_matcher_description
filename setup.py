@@ -74,7 +74,7 @@ def main():
         return False
     
     # Install dependencies
-    if not run_command("pip install -r local_requirements.txt", "Installing Python dependencies"):
+    if not run_command("pip install -r requirements.txt", "Installing Python dependencies"):
         return False
     
     # Install spaCy model
